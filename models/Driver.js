@@ -11,6 +11,17 @@ const Driver = sequelize.define(
             autoIncrement: true
         },
 
+        userId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: User,
+                key: 'id'
+            },
+            allowNull: false,
+            unique: true,
+            onDelete: 'CASCADE'
+        },
+
         licenseNumber: {
             type: DataTypes.STRING,
             allowNull: false

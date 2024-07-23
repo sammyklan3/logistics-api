@@ -3,10 +3,12 @@ const jwt = require("jsonwebtoken");
 const db = require("../config/config");
 const validateEmail = require("../utils/emailValidator");
 const User = require("../models/User");
+const Driver = require("../models/Driver");
+const Shipper = require("../models/Shipper");
 
 const register = async (req, res) => {
     // Get the formdata from the request body
-    const { firstName, lastName, username, email, password, role, phoneNumber } = req.body;
+    const { firstName, lastName, username, email, password, role, phoneNumber, companyName } = req.body;
 
     // Check if all fields are filled
     if (!firstName || !lastName || !username || !email || !password || !role || !phoneNumber) {
@@ -42,6 +44,24 @@ const register = async (req, res) => {
             role,
             phoneNumber
         });
+
+        // If the companyName field is not empty, then check if it already exists in the database, shipper table
+        if (companyName) {
+            const existingShipper = await Shipper.findOne({ where: { companyName } });
+            if (existingShipper) {
+                return res.status(409).json({ message: "Company name already exists" });
+            }
+        };
+
+        // Add the user to either Driver or Shipper tables based on the role ("shipper" or "trucker")
+        if (role === "shipper") {
+            await Shipper.create({ 
+                userId: user.id,
+                companyName
+            });
+        } else if (role === "trucker") {
+            await Driver.create({ userId: user.id });
+        }
 
         // Prepare the user object without returning sensitive data
         const userData = {

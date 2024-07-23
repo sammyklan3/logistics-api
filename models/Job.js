@@ -17,6 +17,24 @@ const Job = sequelize.define(
             allowNull: false
         },
 
+        shipper_id: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: Shipper,
+                key: "id"
+            },
+            allowNull: false
+        },
+
+        // driver_id: {
+        //     type: DataTypes.INTEGER,
+        //     references: {
+        //         model: Driver,
+        //         key: "id"
+        //     },
+        //     defaultValue: null
+        // },
+
         status: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -36,6 +54,16 @@ const Job = sequelize.define(
 
         salary: {
             type: DataTypes.INTEGER,
+            allowNull: false
+        },
+
+        depatureDate: {
+            type: DataTypes.DATE,
+            allowNull: false
+        },
+
+        expectedDeliveryDate: {
+            type: DataTypes.DATE,
             allowNull: false
         },
 

@@ -11,14 +11,21 @@ const Shipper = sequelize.define(
             autoIncrement: true,
         },
 
-        companyName: {
-            type: DataTypes.STRING,
-            allowNull: false
+        userId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: User,
+                key: "id"
+            },
+            allowNull: false,
+            unique: true,
+            onDelete: "CASCADE"
         },
 
-        contactNumber: {
+        companyName: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true,
+            unique: true
         },
     }, {
         timestamps: true,

@@ -3,8 +3,10 @@ const User = require("./User");
 const Job = require("./Job");
 const Driver = require("./Driver");
 const Shipper = require("./Shipper");
+const Vehicle = require("./Vehicle");
 
 // Sync all defined models to the database
+// TODO: remove this and use migrations
 async function syncDatabase() {
     try {
         await sequelize.sync({ alter: true });
