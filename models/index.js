@@ -1,5 +1,8 @@
 const sequelize = require("../config/config");
 const User = require("./User");
+const Job = require("./Job");
+const Driver = require("./Driver");
+const Shipper = require("./Shipper");
 
 // Sync all defined models to the database
 async function syncDatabase() {

@@ -1,19 +1,15 @@
-const sequelize = require("../config/config");
 const { DataTypes } = require("sequelize");
+const sequelize = require("../config/config");
+const Driver = require("./Driver");
+const Shipper = require("./Shipper");
 
 const Job = sequelize.define(
     "Job",
     {
-        // Model attributes go here
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
-        },
-
-        title: {
-            type: DataTypes.STRING,
-            allowNull: false
         },
 
         description: {
@@ -21,73 +17,49 @@ const Job = sequelize.define(
             allowNull: false
         },
 
-        price: {
-            type: DataTypes.FLOAT,
+        status: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            allowedValues: ["Pending", "Completed"],
+            defaultValue: "Pending"
+        },
+
+        pickupLocation: {
+            type: DataTypes.STRING,
             allowNull: false
         },
 
-        user: {
+        dropoffLocation: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+
+        salary: {
             type: DataTypes.INTEGER,
-            references:
-            {
-                model: "User",
-                key: "id"
-            }
+            allowNull: false
         },
 
         weight: {
             type: DataTypes.FLOAT,
             allowNull: false
         },
-
-        completed: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false
-        },
-
-        vehicle_provided: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false
-        },
-
-        vehicle_id: {
-            type: DataTypes.INTEGER,
-            references: {
-                model: "Vehicle",
-                key: "id"
-            },
-            defaultValue: null
-        },
-
-        driver_id: {
-            type: DataTypes.INTEGER,
-            references: {
-                model: "User",
-                key: "id"
-            },
-            defaultValue: null
-        },
-
-        depature: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-
-        destination: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-
-        eta: {
-            type: DataTypes.DATE,
-            defaultValue: null
-        },
-
-        status: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            allowedValues: ["pending", "accepted", "completed", "cancelled"],
-            defaultValue: "pending"
-        }
-    }
+    }, {
+    timestamps: true,
+}
 );
+
+Job.belongsTo(Driver, {
+    foreignKey: {
+        allowNull: false,
+    },
+    onDelete: "CASCADE",
+});
+
+Job.belongsTo(Shipper, {
+    foreignKey: {
+        allowNull: false,
+    },
+    onDelete: "CASCADE",
+});
+
+module.exports = Job;
