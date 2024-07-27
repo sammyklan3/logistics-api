@@ -12,10 +12,10 @@ const Driver = sequelize.define(
         },
 
         userId: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             references: {
                 model: User,
-                key: 'id'
+                key: 'userId'
             },
             allowNull: false,
             unique: true,
@@ -32,7 +32,8 @@ const Driver = sequelize.define(
             allowNull: false
         },
     }, {
-    timestamps: true
+    timestamps: true,
+    tableName: "drivers"
 });
 
 Driver.belongsTo(User, {

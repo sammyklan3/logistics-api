@@ -12,10 +12,10 @@ const Shipper = sequelize.define(
         },
 
         userId: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             references: {
                 model: User,
-                key: "id"
+                key: "userId"
             },
             allowNull: false,
             unique: true,
@@ -29,6 +29,7 @@ const Shipper = sequelize.define(
         },
     }, {
         timestamps: true,
+        tableName: "shippers",
     }
 );
 

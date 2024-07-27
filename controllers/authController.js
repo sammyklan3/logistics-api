@@ -5,10 +5,11 @@ const validateEmail = require("../utils/emailValidator");
 const User = require("../models/User");
 const Driver = require("../models/Driver");
 const Shipper = require("../models/Shipper");
+const generateRandomString = require("../utils/randomStringGenerator");
 
 const register = async (req, res) => {
     // Get the formdata from the request body
-    const { firstName, lastName, username, email, password, role, phoneNumber, companyName } = req.body;
+    const { firstName, lastName, username, email, password, role, phoneNumber, companyName, licenseNumber } = req.body;
 
     // Check if all fields are filled
     if (!firstName || !lastName || !username || !email || !password || !role || !phoneNumber) {
@@ -18,6 +19,11 @@ const register = async (req, res) => {
     // Validate the email address
     if (!validateEmail(email)) {
         return res.status(400).json({ message: "Invalid email address" });
+    };
+
+    // If the role is "trucker", the license number is required
+    if (role === "trucker" &&!licenseNumber) {
+        return res.status(400).json({ message: "License number is required for trucker" });
     };
 
     // Hash the password before saving it in the database
@@ -38,6 +44,7 @@ const register = async (req, res) => {
         const user = await User.create({
             firstName,
             lastName,
+            userId: generateRandomString(),
             username,
             email,
             password: hashedPassword,
@@ -55,17 +62,19 @@ const register = async (req, res) => {
 
         // Add the user to either Driver or Shipper tables based on the role ("shipper" or "trucker")
         if (role === "shipper") {
-            await Shipper.create({ 
-                userId: user.id,
+            await Shipper.create({
+                UserId: user.userId,
+                userId: user.userId,
                 companyName
             });
         } else if (role === "trucker") {
-            await Driver.create({ userId: user.id });
+            await Driver.create({ userId: user.userId });
         }
 
         // Prepare the user object without returning sensitive data
         const userData = {
             id: user.id,
+            userId: user.userId,
             firstName: user.firstName,
             lastName: user.lastName,
             username: user.username,

@@ -12,6 +12,13 @@ const User = sequelize.define(
             autoIncrement: true
         },
 
+        // Store userId here
+        userId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true
+        },
+
         firstName: {
             type: DataTypes.STRING,
             allowNull: false

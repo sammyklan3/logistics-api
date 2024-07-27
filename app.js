@@ -2,19 +2,38 @@ const express = require("express");
 const authRoutes = require("./routes/authRoutes");
 const app = express();
 const morgan = require("morgan");
+const cluster = require("cluster");
+const os = require("os");
 const syncDatabase = require("./models/index");
 const port = 3000;
 
-app.use(express.json());
+// Use node.js cluster configuration to take advantage of multi-core systems
+if (cluster.isMaster) {
+    const numCPUs = os.cpus().length;
 
-// Synch the database
-syncDatabase();
+    // Fork workers
+    for (let i = 0; i < numCPUs; i++) {
+        cluster.fork();
+    }
 
-// Use morgan to log requests to the console
-app.use(morgan('combined'));
+    cluster.on("exit", (worker, code, signal) => {
+        console.log(`Worker ${worker.process.pid} died, restarting...`);
+        cluster.fork();
+    });
+} else {
+    // Workers can share any TCP connection
+    app.use(express.json());
 
-app.use("/auth", authRoutes);
+    // Sync the database
+    syncDatabase();
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+    // Use morgan to log requests to the console
+    app.use(morgan('combined'));
+
+    app.use("/auth", authRoutes);
+
+    app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+    });
+}
+
