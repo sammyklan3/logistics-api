@@ -3,6 +3,7 @@ const authRoutes = require("./routes/authRoutes");
 const app = express();
 const morgan = require("morgan");
 const cluster = require("cluster");
+const cors = require("cors");
 const os = require("os");
 const syncDatabase = require("./models/index");
 const port = 3000;
@@ -24,11 +25,14 @@ if (cluster.isMaster) {
     // Workers can share any TCP connection
     app.use(express.json());
 
+    // Enable CORS
+    app.use(cors());
+
     // Sync the database
     syncDatabase();
 
     // Use morgan to log requests to the console
-    app.use(morgan('combined'));
+    app.use(morgan("combined"));
 
     app.use("/auth", authRoutes);
 
@@ -36,4 +40,3 @@ if (cluster.isMaster) {
         console.log(`Server running on port ${port}`);
     });
 }
-

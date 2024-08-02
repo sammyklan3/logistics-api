@@ -15,11 +15,11 @@ const Driver = sequelize.define(
             type: DataTypes.STRING,
             references: {
                 model: User,
-                key: 'userId'
+                key: "userId"
             },
             allowNull: false,
             unique: true,
-            onDelete: 'CASCADE'
+            onDelete: "CASCADE"
         },
 
         licenseNumber: {
@@ -29,7 +29,7 @@ const Driver = sequelize.define(
 
         vehicleType: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
         },
     }, {
     timestamps: true,
