@@ -132,6 +132,7 @@ const login = async (req, res) => {
         return res.status(400).json({ message: "Email and password are required" });
     }
 
+
     try {
         const user = await User.findOne({ where: { email } });
 
@@ -150,6 +151,13 @@ const login = async (req, res) => {
             role: user.role,
             phoneNumber: user.phoneNumber
         };
+
+        // Get location of login
+        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        // const location = await getLocation(ip);
+
+        // Send email to notify user of new login
+        sendMail( user.email, "New Login", `Hello ${user.username}, a new login was detected on your account`, `<p>Hello <b>${user.firstName} ${user.lastName}</b>,</p><p>A new login was detected on your account</p>`);
 
         const accessToken = jwt.sign({ id: user.id, username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
         const refreshToken = jwt.sign({ id: user.id, username: user.username }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
