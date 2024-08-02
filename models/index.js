@@ -1,4 +1,4 @@
-const sequelize = require("../config/config");
+const sequelize = require("../config/database");
 const User = require("./User");
 const Job = require("./Job");
 const Driver = require("./Driver");
