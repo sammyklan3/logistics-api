@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const cluster = require("cluster");
 const cors = require("cors");
 const os = require("os");
+const compression = require("compression");
 const syncDatabase = require("./models/index");
 const port = 3000;
 
@@ -24,6 +25,9 @@ if (cluster.isMaster) {
 } else {
     // Workers can share any TCP connection
     app.use(express.json());
+
+    // Compress responses
+    app.use(compression());
 
     // Enable CORS
     app.use(cors());
