@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
 const sequelize = require("../config/database");
 const validateEmail = require("../utils/emailValidator");
 const User = require("../models/User");
@@ -8,8 +9,8 @@ const Shipper = require("../models/Shipper");
 const generateRandomString = require("../utils/randomStringGenerator");
 const sendMail = require("../services/mailService");
 
-// Register a new user
 
+// Register a new user
 const register = async (req, res) => {
     const { firstName, lastName, username, email, password, role, phoneNumber, companyName, licenseNumber } = req.body;
 
@@ -146,6 +147,9 @@ const login = async (req, res) => {
         // Prepare the user object without returning sensitive data
         const userData = {
             id: user.id,
+            userId: user.userId,
+            firstName: user.firstName,
+            lastName: user.lastName,
             username: user.username,
             email: user.email,
             role: user.role,
@@ -157,7 +161,7 @@ const login = async (req, res) => {
         // const location = await getLocation(ip);
 
         // Send email to notify user of new login
-        sendMail( user.email, "New Login", `Hello ${user.username}, a new login was detected on your account`, `<p>Hello <b>${user.firstName} ${user.lastName}</b>,</p><p>A new login was detected on your account</p>`);
+        sendMail(user.email, "New Login", `Hello ${user.username}, a new login was detected on your account`, `<p>Hello <b>${user.firstName} ${user.lastName}</b>,</p><p>A new login was detected on your account</p>`);
 
         const accessToken = jwt.sign({ id: user.id, username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
         const refreshToken = jwt.sign({ id: user.id, username: user.username }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
@@ -193,6 +197,10 @@ const deleteUser = async (req, res) => {
         const user = await User.findOne({ where: { userId } });
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // Delete any photo files associated with this user
+        // deletePhotoFiles(user.photo);
+
+
         await user.destroy();
         res.status(204).json({ message: "User deleted successfully" });
 
@@ -207,7 +215,43 @@ const deleteUser = async (req, res) => {
     } catch {
         res.status(400).json({ error: error.message });
     }
+};
 
-}
+// Update user profile
+const updateUserProfile = async (req, res) => {
+    // Get user ID from request
+    const { userId } = req.params;
 
-module.exports = { register, login, refreshToken, deleteUser };
+    if (!userId) return res.status(400).json({ message: "User ID is required" });
+
+    try {
+
+        // Check if user already exists
+        const user = await User.findOne({ where: { userId } });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Check if the user uploaded an image
+        if (req.file) {
+            // Check if the profilePicture field has a value and delete it
+            if (user.profilePicture) {
+                // Check if the file exists in the upload folder
+                if (fs.existsSync(`../uploads/${user.profilePicture}`)) {
+                    // Delete the existing file
+                    fs.unlinkSync(`../uploads/${user.profilePicture}`);
+                }
+            };
+
+            // Update the profile picture field in the database
+            user.profilePicture = req.file.filename;
+            await user.save();
+        };
+
+        // Update the user's other fields
+
+        res.status(200).json({ message: "User profile updated successfully", user });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+module.exports = { register, login, refreshToken, deleteUser, updateUserProfile };
