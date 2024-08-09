@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
+const Sequelize = require("sequelize");
 const sequelize = require("../config/database");
 const validateEmail = require("../utils/emailValidator");
 const User = require("../models/User");
@@ -8,7 +9,6 @@ const Driver = require("../models/Driver");
 const Shipper = require("../models/Shipper");
 const generateRandomString = require("../utils/randomStringGenerator");
 const sendMail = require("../services/mailService");
-
 
 // Register a new user
 const register = async (req, res) => {
@@ -37,7 +37,7 @@ const register = async (req, res) => {
         // Check if the user already exists
         const existingUser = await User.findOne({
             where: {
-                [db.Sequelize.Op.or]: [{ email }, { username }]
+                [Sequelize.Op.or]: [{ email }, { username }]
             },
             transaction
         });
@@ -234,7 +234,7 @@ const updateUserProfile = async (req, res) => {
         if (req.file) {
             // Check if the profilePicture field has a value and delete it
             if (user.profilePicture) {
-                // Check if the file exists in the upload folder
+                // Check if the file exists in the upload folder10 points
                 if (fs.existsSync(`../uploads/${user.profilePicture}`)) {
                     // Delete the existing file
                     fs.unlinkSync(`../uploads/${user.profilePicture}`);
