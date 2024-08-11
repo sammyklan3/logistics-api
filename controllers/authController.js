@@ -148,8 +148,6 @@ const login = async (req, res) => {
         const userData = {
             id: user.id,
             userId: user.userId,
-            firstName: user.firstName,
-            lastName: user.lastName,
             username: user.username,
             email: user.email,
             role: user.role,
