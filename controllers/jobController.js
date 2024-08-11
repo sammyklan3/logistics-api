@@ -7,7 +7,7 @@ const createJob = async (req, res) => {
     const { description, status, pickupLocation, dropoffLocation, salary, depatureDate } = req.body;
 
     const shipper_id = req.user.userId;
-
+    
     // Validate required fields
     const requiredFields = [description, shipper_id, status, pickupLocation, dropoffLocation, salary, depatureDate];
     if (requiredFields.some(field => !field)) {
