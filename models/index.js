@@ -4,6 +4,7 @@ const Job = require("./Job");
 const Driver = require("./Driver");
 const Shipper = require("./Shipper");
 const Vehicle = require("./Vehicle");
+const Transaction = require("./Transaction");
 
 // Sync all defined models to the database
 // TODO: remove this and use migrations

@@ -65,6 +65,12 @@ const User = sequelize.define(
             defaultValue: "trucker"
         },
 
+        tokens: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 100
+        },
+
         status: {
             type: DataTypes.STRING,
             allowNull: false,
