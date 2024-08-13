@@ -6,13 +6,15 @@ require("dotenv").config();
 
 // Job creation
 const createJob = async (req, res) => {
-    const { description, status, pickupLocation, dropoffLocation, salary, depatureDate } = req.body;
+    const { description, pickupLocation, dropoffLocation, salary, departureDate, expectedDeliveryDate, weight } = req.body;
 
     // Get the shipper's ID from the request context
     const shipper_id = req.user.userId;
+
+    console.log(shipper_id);
     
     // Validate required fields
-    const requiredFields = [description, shipper_id, status, pickupLocation, dropoffLocation, salary, depatureDate];
+    const requiredFields = [description, shipper_id, pickupLocation, dropoffLocation, salary, departureDate, expectedDeliveryDate, weight];
     if (requiredFields.some(field => !field)) {
         return res.status(400).json({ message: "All fields are required" });
     }
@@ -29,11 +31,13 @@ const createJob = async (req, res) => {
         const job = await Job.create({
             description,
             shipper_id,
-            status,
             pickupLocation,
             dropoffLocation,
             salary,
-            depatureDate
+            departureDate,
+            expectedDeliveryDate,
+            weight,
+            ShipperId: req.user.id
         }, { transaction });
 
         // Subtract the number of tokens from the shipper's account
@@ -47,6 +51,7 @@ const createJob = async (req, res) => {
         return res.status(201).json({ message: "Job created successfully", job });
     } catch (error) {
         await transaction.rollback();
+        console.log(error);
         return res.status(500).json({ message: "Internal server error" });
     }
 };

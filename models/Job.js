@@ -18,10 +18,10 @@ const Job = sequelize.define(
         },
 
         shipper_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             references: {
                 model: Shipper,
-                key: "id"
+                key: "userId"
             },
             allowNull: false
         },
@@ -57,7 +57,7 @@ const Job = sequelize.define(
             allowNull: false
         },
 
-        depatureDate: {
+        departureDate: {
             type: DataTypes.DATE,
             allowNull: false
         },
@@ -76,12 +76,12 @@ const Job = sequelize.define(
 }
 );
 
-Job.belongsTo(Driver, {
-    foreignKey: {
-        allowNull: false,
-    },
-    onDelete: "CASCADE",
-});
+// Job.belongsTo(Driver, {
+//     foreignKey: {
+//         allowNull: false,
+//     },
+//     onDelete: "CASCADE",
+// });
 
 Job.belongsTo(Shipper, {
     foreignKey: {
