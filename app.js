@@ -1,5 +1,6 @@
 const express = require("express");
 const authRoutes = require("./routes/authRoutes");
+const jobRoutes = require("./routes/jobRoutes");
 const app = express();
 const morgan = require("morgan");
 const cluster = require("cluster");
@@ -39,6 +40,7 @@ if (cluster.isMaster) {
     app.use(morgan("combined"));
 
     app.use("/auth", authRoutes);
+    app.use("/job", jobRoutes);
 
     app.listen(port, () => {
         console.log(`Server running on port ${port}`);

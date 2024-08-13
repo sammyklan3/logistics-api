@@ -104,8 +104,8 @@ const register = async (req, res) => {
         }
 
         // Generate tokens
-        const accessToken = jwt.sign({ id: user.id, username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
-        const refreshToken = jwt.sign({ id: user.id, username: user.username }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+        const accessToken = jwt.sign({ id: user.id, username: user.username, userId: user.userId, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+        const refreshToken = jwt.sign({ id: user.id, username: user.username, userId: user.userId, role: user.role }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
 
         // Send welcome email
         sendMail(
@@ -161,8 +161,8 @@ const login = async (req, res) => {
         // Send email to notify user of new login
         sendMail(user.email, "New Login", `Hello ${user.username}, a new login was detected on your account`, `<p>Hello <b>${user.firstName} ${user.lastName}</b>,</p><p>A new login was detected on your account</p>`);
 
-        const accessToken = jwt.sign({ id: user.id, username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
-        const refreshToken = jwt.sign({ id: user.id, username: user.username }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+        const accessToken = jwt.sign({ id: user.id, username: user.username, userId: user.userId, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+        const refreshToken = jwt.sign({ id: user.id, username: user.username, userId: user.userId, role: user.role }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
 
         res.json({ accessToken, refreshToken, userData });
 
