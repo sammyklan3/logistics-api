@@ -2,6 +2,7 @@ const Job = require("../models/Job");
 const User = require("../models/User");
 const sequelize = require("../config/database");
 const Sequelize = require("sequelize");
+require("dotenv").config();
 
 // Job creation
 const createJob = async (req, res) => {
@@ -37,7 +38,7 @@ const createJob = async (req, res) => {
 
         // Subtract the number of tokens from the shipper's account
         const shipper = await User.findOne({ where: { userId: shipper_id }, transaction });
-        shipper.tokens -= 50;
+        shipper.tokens -= process.env.SHIPPER_JOB_CREATION_COST;
         await shipper.save({ transaction });
 
 

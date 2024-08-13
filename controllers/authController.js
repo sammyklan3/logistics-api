@@ -155,7 +155,7 @@ const login = async (req, res) => {
         };
 
         // Get location of login
-        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        // const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
         // const location = await getLocation(ip);
 
         // Send email to notify user of new login
@@ -167,6 +167,7 @@ const login = async (req, res) => {
         res.json({ accessToken, refreshToken, userData });
 
     } catch (error) {
+        console.log(error);
         res.status(400).json({ error: error.message });
     }
 };
