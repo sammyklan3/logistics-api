@@ -29,3 +29,5 @@ const Transaction = sequelize.define(
         timestamps: true
     }
 );
+
+module.exports = Transaction;

@@ -1,4 +1,5 @@
 const Job = require("../models/Job");
+const User = require("../models/User");
 const sequelize = require("../config/database");
 const Sequelize = require("sequelize");
 
@@ -33,6 +34,12 @@ const createJob = async (req, res) => {
             salary,
             depatureDate
         }, { transaction });
+
+        // Subtract the number of tokens from the shipper's account
+        const shipper = await User.findOne({ where: { userId: shipper_id }, transaction });
+        shipper.tokens -= 50;
+        await shipper.save({ transaction });
+
 
         await transaction.commit();
 
