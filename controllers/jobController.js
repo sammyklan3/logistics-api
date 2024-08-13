@@ -6,6 +6,7 @@ const Sequelize = require("sequelize");
 const createJob = async (req, res) => {
     const { description, status, pickupLocation, dropoffLocation, salary, depatureDate } = req.body;
 
+    // Get the shipper's ID from the request context
     const shipper_id = req.user.userId;
     
     // Validate required fields
