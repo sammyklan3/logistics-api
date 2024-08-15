@@ -9,6 +9,7 @@ const Driver = require("../models/Driver");
 const Shipper = require("../models/Shipper");
 const generateRandomString = require("../utils/randomStringGenerator");
 const sendMail = require("../services/mailService");
+const deleteFile = require("../utils/deleteFile");
 
 // Register a new user
 const register = async (req, res) => {
@@ -188,7 +189,7 @@ const refreshToken = async (req, res) => {
 
 // Delete a user
 const deleteUser = async (req, res) => {
-    const { userId } = req.params;
+    const { userId } = req.user;
 
     if (!userId) return res.status(400).json({ message: "User ID is required" });
 
@@ -196,9 +197,13 @@ const deleteUser = async (req, res) => {
         const user = await User.findOne({ where: { userId } });
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        // Delete any photo files associated with this user
-        // deletePhotoFiles(user.photo);
+        console.log(user.profilePicture);
 
+        // Delete any photo files associated with this user
+        if (user.profilePicture) {
+            // Call a function to delete the file
+            deleteFile(user.profilePicture);
+        }
 
         await user.destroy();
         res.status(204).json({ message: "User deleted successfully" });
@@ -219,7 +224,7 @@ const deleteUser = async (req, res) => {
 // Update user profile
 const updateUserProfile = async (req, res) => {
     // Get user ID from request
-    const { userId } = req.params;
+    const { userId } = req.user;
 
     if (!userId) return res.status(400).json({ message: "User ID is required" });
 
@@ -233,11 +238,7 @@ const updateUserProfile = async (req, res) => {
         if (req.file) {
             // Check if the profilePicture field has a value and delete it
             if (user.profilePicture) {
-                // Check if the file exists in the upload folder10 points
-                if (fs.existsSync(`../uploads/${user.profilePicture}`)) {
-                    // Delete the existing file
-                    fs.unlinkSync(`../uploads/${user.profilePicture}`);
-                }
+                deleteFile(user.profilePicture);
             };
 
             // Update the profile picture field in the database
