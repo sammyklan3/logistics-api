@@ -36,6 +36,10 @@ if (cluster.isMaster) {
     // Sync the database
     syncDatabase();
 
+    app.get("/", (req, res) => {
+        res.send('Hello World!');
+    });
+
     // Use morgan to log requests to the console
     app.use(morgan("combined"));
 

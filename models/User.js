@@ -2,7 +2,7 @@ const sequelize = require("../config/database");
 const { DataTypes } = require("sequelize");
 
 const User = sequelize.define(
-    "Users",
+    "User",
     {
         // Model attributes are defined here
         id: {
@@ -79,7 +79,7 @@ const User = sequelize.define(
         }
     }, {
         // Other model options go here
-        tableName: "users",
+        // tableName: "users",
         timestamps: true
     }
 )
