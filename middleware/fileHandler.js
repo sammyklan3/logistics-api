@@ -11,7 +11,7 @@ if (!fs.existsSync(uploadsDir)) {
 // Define storage for files
 const storage = multer.diskStorage({
     destination: (req, res, cb) => {
-        cb(null, "uploads"); // Directory to save files
+        cb(null, uploadsDir); // Directory to save files
     },
 
     filename: (req, file, cb) => {
@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
 
 // File filter to accept pdf and photos only
 const fileFilter = (req, file, cb) => {
-    const fileTypes = /jpeg|jpg|png|gif|pdf/;
+    const fileTypes = /jpeg|jpg|png|gif|pdf|webp/;
     const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = fileTypes.test(file.mimetype);
 

@@ -7,7 +7,7 @@ const upload = require("../middleware/fileHandler");
 router.post("/register", register);
 router.post("/login", login);
 router.post("/refresh-token", refreshToken);
-router.delete("/delete/:userId", authenticateToken ,deleteUser);
-router.patch("/update/:userId", authenticateToken, upload.single("image"), updateUserProfile);
+router.delete("/delete", authenticateToken ,deleteUser);
+router.patch("/update", authenticateToken, upload.single("image"), updateUserProfile);
 
 module.exports = router;
