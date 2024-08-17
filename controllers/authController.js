@@ -11,6 +11,12 @@ const generateRandomString = require("../utils/randomStringGenerator");
 const sendMail = require("../services/mailService");
 const deleteFile = require("../utils/deleteFile");
 
+// Create an enum for user roles
+const roles = {
+    shipper: "shipper",
+    trucker: "trucker"
+};
+
 // Register a new user
 const register = async (req, res) => {
     const { firstName, lastName, username, email, password, role, phoneNumber, companyName, licenseNumber } = req.body;
@@ -27,7 +33,7 @@ const register = async (req, res) => {
     }
 
     // Validate role-specific fields
-    if (role === "trucker" && !licenseNumber) {
+    if (role === roles.trucker && !licenseNumber) {
         return res.status(400).json({ message: "License number is required for truckers" });
     }
 
@@ -72,13 +78,13 @@ const register = async (req, res) => {
         }
 
         // Add user to role-specific table
-        if (role === "shipper") {
+        if (role === roles.shipper) {
             await Shipper.create({
                 userId: user.userId,
                 UserId: user.id,
                 companyName
             }, { transaction });
-        } else if (role === "trucker") {
+        } else if (role === roles.trucker) {
             await Driver.create({
                 userId: user.userId,
                 UserId: user.id,
