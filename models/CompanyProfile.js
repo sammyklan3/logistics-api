@@ -47,7 +47,7 @@ const CompanyProfile = sequelize.define("CompanyProfile", {
     tableName: "company_profiles",
 });
 
-User.hasOne(CompanyProfile, { foreignKey: "user_id" });
+User.hasOne(CompanyProfile, { foreignKey: "user_id", onDelete: "CASCADE" });
 CompanyProfile.belongsTo(User, { foreignKey: "user_id" });
 
 module.exports = CompanyProfile;

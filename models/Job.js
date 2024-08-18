@@ -73,7 +73,7 @@ const Job = sequelize.define("Job", {
     tableName: "jobs",
 });
 
-ShipperProfile.hasMany(Job, { foreignKey: "shipper_id" });
+ShipperProfile.hasMany(Job, { foreignKey: "shipper_id", onDelete: "CASCADE" });
 Job.belongsTo(ShipperProfile, { foreignKey: "shipper_id" });
 
 module.exports = Job;

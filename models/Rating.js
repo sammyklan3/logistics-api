@@ -71,7 +71,7 @@ Rating.belongsTo(User, { foreignKey: "reviewer_id", as: "reviewer" });
 User.hasMany(Rating, { foreignKey: "reviewee_id", as: "reviewee" });
 Rating.belongsTo(User, { foreignKey: "reviewee_id", as: "reviewee" });
 
-Job.hasMany(Rating, { foreignKey: "job_id" });
+Job.hasMany(Rating, { foreignKey: "job_id", onDelete: "CASCADE" });
 Rating.belongsTo(Job, { foreignKey: "job_id" });
 
 module.exports = Rating;

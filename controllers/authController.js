@@ -5,24 +5,31 @@ const Sequelize = require("sequelize");
 const sequelize = require("../config/database");
 const validateEmail = require("../utils/emailValidator");
 const User = require("../models/User");
-const DriverProfile = require("../models/DriverProfile");
-const ShipperProfile = require("../models/ShipperProfile");
-const generateRandomString = require("../utils/randomStringGenerator");
+const createDriverProfile = require("../utils/createDriverProfile");
+const createShipperProfile = require("../utils/createShipperProfile");
+const createCompanyProfile = require("../utils/createCompanyProfile");
+const generateToken = require("../utils/generateToken");
 const sendMail = require("../services/mailService");
 const deleteFile = require("../utils/deleteFile");
 
 // Create an enum for user roles
 const roles = {
     shipper: "shipper",
-    trucker: "trucker"
+    driver: "driver",
+    company: "company"
 };
 
 // Register a new user
 const register = async (req, res) => {
-    const { firstName, lastName, username, email, password, role, phoneNumber, companyName, licenseNumber } = req.body;
+    const {
+        name, email, password, role, phoneNumber,
+        licenseNumber, vehicleType, vehicleCapacity,
+        experienceYears, companyName, fleetSize
+    } = req.body;
 
     // Validate required fields
-    const requiredFields = [firstName, lastName, username, email, password, role, phoneNumber];
+    const requiredFields = [name, email, password, role, phoneNumber];
+
     if (requiredFields.some(field => !field)) {
         return res.status(400).json({ message: "All fields are required" });
     }
@@ -32,11 +39,6 @@ const register = async (req, res) => {
         return res.status(400).json({ message: "Invalid email address" });
     }
 
-    // Validate role-specific fields
-    if (role === roles.trucker && !licenseNumber) {
-        return res.status(400).json({ message: "License number is required for truckers" });
-    }
-
     // Start a transaction
     const transaction = await sequelize.transaction();
 
@@ -44,10 +46,11 @@ const register = async (req, res) => {
         // Check if the user already exists
         const existingUser = await User.findOne({
             where: {
-                [Sequelize.Op.or]: [{ email }, { username }]
+                [Sequelize.Op.or]: [{ email }, { phone_number: phoneNumber }]
             },
             transaction
         });
+
         if (existingUser) {
             await transaction.rollback();
             return res.status(409).json({ message: "User already exists" });
@@ -58,42 +61,18 @@ const register = async (req, res) => {
 
         // Create a new user
         const user = await User.create({
-            firstName,
-            lastName,
-            userId: generateRandomString(),
-            username,
+            name,
             email,
             password: hashedPassword,
             role,
-            phoneNumber
+            phone_number: phoneNumber,
         }, { transaction });
 
-        // Check for existing company name if provided
-        if (companyName) {
-            const existingShipper = await Shipper.findOne({ where: { companyName }, transaction });
-            if (existingShipper) {
-                await transaction.rollback();
-                return res.status(409).json({ message: "Company name already exists" });
-            }
-        }
-
-        // Add user to role-specific table
-        if (role === roles.shipper) {
-            await Shipper.create({
-                userId: user.userId,
-                UserId: user.id,
-                companyName
-            }, { transaction });
-        } else if (role === roles.trucker) {
-            await Driver.create({
-                userId: user.userId,
-                UserId: user.id,
-                licenseNumber
-            }, { transaction });
-        } else {
-            await transaction.rollback();
-            return res.status(400).json({ message: "Invalid role" });
-        }
+        // Role-specific profile creation
+        await createProfileBasedOnRole(role, user.id, {
+            licenseNumber, vehicleType, vehicleCapacity,
+            experienceYears, companyName, fleetSize, transaction
+        });
 
         // Commit the transaction
         await transaction.commit();
@@ -102,35 +81,56 @@ const register = async (req, res) => {
         const userData = {
             id: user.id,
             userId: user.userId,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            username: user.username,
+            name: user.name,
             email: user.email,
             role: user.role,
-            phoneNumber: user.phoneNumber
-        }
+            phoneNumber: user.phone_number,
+        };
 
         // Generate tokens
-        const accessToken = jwt.sign({ id: user.id, username: user.username, userId: user.userId, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
-        const refreshToken = jwt.sign({ id: user.id, username: user.username, userId: user.userId, role: user.role }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+        const accessToken = generateToken(user, process.env.ACCESS_TOKEN_SECRET, "15m");
+        const refreshToken = generateToken(user, process.env.REFRESH_TOKEN_SECRET, "7d");
 
         // Send welcome email
-        sendMail(
-            user.email,
-            "Welcome to NovaCore",
-            `Hello ${user.username}, welcome to the platform`,
-            `<p>Hello <b>${user.firstName} ${user.lastName}</b>,</p><p>Welcome to our service! </p> <br>${role === "shipper" ? "You've registered as a shipper" : "You've registered as a driver"}`
-        );
+        await sendWelcomeEmail(user.email, user.name, role);
 
         // Respond with user data and tokens
         res.status(201).json({ message: "User registered successfully", userData, accessToken, refreshToken });
 
     } catch (err) {
-        // Rollback the transaction in case of error
-        if (transaction) await transaction.rollback();
+        // Rollback the transaction only if it's still active
+        if (transaction && !transaction.finished) {
+            await transaction.rollback();
+        }
         res.status(500).json({ error: err.message });
     }
 };
+
+// Helper function to create role-specific profiles
+const createProfileBasedOnRole = async (role, userId, profileData) => {
+    const { licenseNumber, vehicleType, vehicleCapacity, experienceYears, companyName, fleetSize, transaction } = profileData;
+
+    if (role === roles.driver) {
+        await createDriverProfile(userId, { licenseNumber, vehicleType, vehicleCapacity, experienceYears, transaction });
+    } else if (role === roles.shipper) {
+        await createShipperProfile(userId, companyName, transaction);
+    } else if (role === roles.company) {
+        await createCompanyProfile(userId, companyName, fleetSize, transaction);
+    } else {
+        await transaction.rollback();
+        throw new Error("Invalid user role");
+    }
+};
+
+// Function to send a welcome email
+const sendWelcomeEmail = async (email, name, role) => {
+    const subject = "Welcome to NovaCore";
+    const message = `Hello ${name}, welcome to the platform`;
+    const htmlMessage = `<p>Hello <b>${name}</b>,</p><p>Welcome to our service!</p><br>${role === "shipper" ? "You've registered as a shipper" : "You've registered as a driver"}`;
+
+    await sendMail(email, subject, message, htmlMessage);
+};
+
 
 // Login a user
 const login = async (req, res) => {
@@ -195,12 +195,12 @@ const refreshToken = async (req, res) => {
 
 // Delete a user
 const deleteUser = async (req, res) => {
-    const { userId } = req.user;
+    const { id } = req.user;
 
-    if (!userId) return res.status(400).json({ message: "User ID is required" });
+    if (!id) return res.status(400).json({ message: "User ID is required" });
 
     try {
-        const user = await User.findOne({ where: { userId } });
+        const user = await User.findOne({ where: { id } });
         if (!user) return res.status(404).json({ message: "User not found" });
 
         console.log(user.profilePicture);

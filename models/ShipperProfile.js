@@ -37,7 +37,7 @@ const ShipperProfile = sequelize.define("ShipperProfile", {
     tableName: "shipper_profiles",
 });
 
-User.hasOne(ShipperProfile, { foreignKey: "user_id" });
+User.hasOne(ShipperProfile, { foreignKey: "user_id", onDelete: "CASCADE" });
 ShipperProfile.belongsTo(User, { foreignKey: "user_id" });
 
 module.exports = ShipperProfile;
