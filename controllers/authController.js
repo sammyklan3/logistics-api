@@ -29,8 +29,8 @@ const register = async (req, res) => {
 
     // Validate required fields
     const requiredFields = [name, email, password, role, phoneNumber];
-    
-    if(requiredFields.some(field => !field)) {
+
+    if (requiredFields.some(field => !field)) {
         return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -46,7 +46,7 @@ const register = async (req, res) => {
         // Check if the user already exists
         const existingUser = await User.findOne({
             where: {
-                [Sequelize.Op.or]: [{ email }, { phoneNumber }]
+                [Sequelize.Op.or]: [{ email }, { phone_number: phoneNumber }]
             },
             transaction
         });
@@ -98,8 +98,10 @@ const register = async (req, res) => {
         res.status(201).json({ message: "User registered successfully", userData, accessToken, refreshToken });
 
     } catch (err) {
-        // Rollback the transaction in case of error
-        if (transaction) await transaction.rollback();
+        // Rollback the transaction only if it's still active
+        if (transaction && !transaction.finished) {
+            await transaction.rollback();
+        }
         res.status(500).json({ error: err.message });
     }
 };
@@ -114,6 +116,9 @@ const createProfileBasedOnRole = async (role, userId, profileData) => {
         await createShipperProfile(userId, companyName, transaction);
     } else if (role === roles.company) {
         await createCompanyProfile(userId, companyName, fleetSize, transaction);
+    } else {
+        await transaction.rollback();
+        throw new Error("Invalid user role");
     }
 };
 
@@ -190,12 +195,12 @@ const refreshToken = async (req, res) => {
 
 // Delete a user
 const deleteUser = async (req, res) => {
-    const { userId } = req.user;
+    const { id } = req.user;
 
-    if (!userId) return res.status(400).json({ message: "User ID is required" });
+    if (!id) return res.status(400).json({ message: "User ID is required" });
 
     try {
-        const user = await User.findOne({ where: { userId } });
+        const user = await User.findOne({ where: { id } });
         if (!user) return res.status(404).json({ message: "User not found" });
 
         console.log(user.profilePicture);

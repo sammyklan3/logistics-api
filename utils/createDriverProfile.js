@@ -6,7 +6,7 @@ const createDriverProfile = async (userId, { licenseNumber, vehicleType, vehicle
         throw new Error("All fields are required for driver registration");
     }
 
-    const existingDriver = await DriverProfile.findOne({ where: { licenseNumber }, transaction });
+    const existingDriver = await DriverProfile.findOne({ where: { license_number: licenseNumber }, transaction });
     if (existingDriver) {
         throw new Error("License number already exists");
     }

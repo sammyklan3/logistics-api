@@ -16,7 +16,6 @@ const DriverProfile = sequelize.define("DriverProfile", {
             key: "id"
         },
         allowNull: false,
-        onDelete: "CASCADE"
     },
 
     license_number: {
@@ -58,7 +57,7 @@ const DriverProfile = sequelize.define("DriverProfile", {
     tableName: "driver_profiles",
 });
 
-User.hasOne(DriverProfile, { foreignKey: "user_id" });
+User.hasOne(DriverProfile, { foreignKey: "user_id", onDelete: "CASCADE" });
 DriverProfile.belongsTo(User, { foreignKey: "user_id" });
 
 module.exports = DriverProfile;
