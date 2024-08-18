@@ -2,8 +2,8 @@ const CompanyProfile = require("../models/CompanyProfile");
 
 // Function to create a company profile
 const createCompanyProfile = async (userId, companyName, fleetSize, transaction) => {
-    if (!companyName) {
-        throw new Error("Company name is required for company registration");
+    if (!companyName || !fleetSize) {
+        throw new Error("Company name or fleet size is required for company registration");
     }
 
     const existingCompany = await CompanyProfile.findOne({ where: { company_name: companyName }, transaction });

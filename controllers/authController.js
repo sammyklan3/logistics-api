@@ -27,6 +27,13 @@ const register = async (req, res) => {
         experienceYears, companyName, fleetSize
     } = req.body;
 
+    // Validate required fields
+    const requiredFields = [name, email, password, role, phoneNumber];
+    
+    if(requiredFields.some(field => !field)) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
+
     // Validate email format
     if (!validateEmail(email)) {
         return res.status(400).json({ message: "Invalid email address" });
