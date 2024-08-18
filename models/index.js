@@ -5,6 +5,7 @@ const ShipperProfile = require("./ShipperProfile");
 const CompanyProfile = require("./CompanyProfile");
 const JobAssignment = require("./JobAssignment");
 const Payment = require("./Payment");
+const Rating = require("./Rating");
 
 // Sync all defined models to the database
 // TODO: remove this and use migrations
