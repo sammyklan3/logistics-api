@@ -1,87 +1,51 @@
 const sequelize = require("../config/database");
 const { DataTypes } = require("sequelize");
 
-const User = sequelize.define(
-    "User",
-    {
-        // Model attributes are defined here
-        id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            primaryKey: true,
-            autoIncrement: true
-        },
+const User = sequelize.define("User", {
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
 
-        // Store userId here
-        userId: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true
-        },
+    name: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
 
-        firstName: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
 
-        lastName: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
+    password: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
 
-        username: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true
-        },
+    role: {
+        type: DataTypes.ENUM("driver", "company", "shipper"),
+        allowNull: false
+    },
 
-        profilePicture: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
+    phone_number: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
 
-        email: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true,
-            validate: {
-                isEmail: true
-            },
-        },
-        phoneNumber: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
+    created_at: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
 
-        password: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-
-        role: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            allowedValues: ["shipper", "trucker"],
-            defaultValue: "trucker"
-        },
-
-        tokens: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            defaultValue: 100
-        },
-
-        status: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            allowedValues: ["verified", "unverified"],
-            defaultValue: "unverified"
-        }
-    }, {
-        // Other model options go here
-        // tableName: "users",
-        timestamps: true
-    }
-)
+    updated_at: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+}, {
+    timestamps: false,
+    tableName: "users",
+});
 
 module.exports = User;

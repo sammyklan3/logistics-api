@@ -1,93 +1,79 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const Driver = require("./Driver");
-const Shipper = require("./Shipper");
+const ShipperProfile = require("./ShipperProfile");
 
-const Job = sequelize.define(
-    "Job",
-    {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
+const Job = sequelize.define("Job", {
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
+
+    shipper_id: {
+        type: DataTypes.UUID,
+        references: {
+            model: ShipperProfile,
+            key: "id"
         },
-
-        description: {
-            type: DataTypes.TEXT,
-            allowNull: false
-        },
-
-        shipper_id: {
-            type: DataTypes.STRING,
-            references: {
-                model: Shipper,
-                key: "userId"
-            },
-            allowNull: false
-        },
-
-        // driver_id: {
-        //     type: DataTypes.INTEGER,
-        //     references: {
-        //         model: Driver,
-        //         key: "id"
-        //     },
-        //     defaultValue: null
-        // },
-
-        status: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            allowedValues: ["Pending", "Completed"],
-            defaultValue: "Pending"
-        },
-
-        pickupLocation: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-
-        dropoffLocation: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-
-        salary: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-
-        departureDate: {
-            type: DataTypes.DATE,
-            allowNull: false
-        },
-
-        expectedDeliveryDate: {
-            type: DataTypes.DATE,
-            allowNull: false
-        },
-
-        weight: {
-            type: DataTypes.FLOAT,
-            allowNull: false
-        },
-    }, {
-    timestamps: true,
-}
-);
-
-// Job.belongsTo(Driver, {
-//     foreignKey: {
-//         allowNull: false,
-//     },
-//     onDelete: "CASCADE",
-// });
-
-Job.belongsTo(Shipper, {
-    foreignKey: {
         allowNull: false,
     },
-    onDelete: "CASCADE",
+
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+
+    pickup_location: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+
+    dropoff_location: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+
+    weight: {
+        type: DataTypes.FLOAT,
+        allowNull: false
+    },
+
+    dimensions: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+
+    price: {
+        type: DataTypes.FLOAT,
+        allowNull: false
+    },
+
+    status: {
+        type: DataTypes.ENUM("open", "in_progress", "completed", "cancelled"),
+        defaultValue: "open"
+    },
+
+    created_at: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+
+    updated_at: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    }
+    
+}, {
+    timestamps: false,
+    tableName: "jobs",
 });
+
+ShipperProfile.hasMany(Job, { foreignKey: "shipper_id" });
+Job.belongsTo(ShipperProfile, { foreignKey: "shipper_id" });
 
 module.exports = Job;
