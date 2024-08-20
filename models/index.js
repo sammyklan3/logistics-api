@@ -11,7 +11,7 @@ const Rating = require("./Rating");
 // TODO: remove this and use migrations
 async function syncDatabase() {
     try {
-        await sequelize.sync({ force: false });
+        await sequelize.sync({ alter: true });
         console.log("All models were synchronized successfully.");
     } catch (error) {
         console.error("Unable to sync tables:", error);

@@ -1,6 +1,5 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const fs = require("fs");
 const Sequelize = require("sequelize");
 const sequelize = require("../config/database");
 const validateEmail = require("../utils/emailValidator");
@@ -168,8 +167,9 @@ const login = async (req, res) => {
         // Send email to notify user of new login
         sendMail(user.email, "New Login", `Hello ${user.username}, a new login was detected on your account`, `<p>Hello <b>${user.firstName} ${user.lastName}</b>,</p><p>A new login was detected on your account</p>`);
 
-        const accessToken = jwt.sign({ id: user.id, username: user.username, userId: user.userId, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
-        const refreshToken = jwt.sign({ id: user.id, username: user.username, userId: user.userId, role: user.role }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+        // Generate tokens
+        const accessToken = generateToken(user, process.env.ACCESS_TOKEN_SECRET, "15m");
+        const refreshToken = generateToken(user, process.env.REFRESH_TOKEN_SECRET, "7d");
 
         res.json({ accessToken, refreshToken, userData });
 
@@ -187,8 +187,8 @@ const refreshToken = async (req, res) => {
     jwt.verify({ token: token }, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
 
-        const accessToken = jwt.sign({ id: user.id, username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
-
+        // Generate a new access token
+        const accessToken = generateToken(user, process.env.ACCESS_TOKEN_SECRET, "15m");
         res.json({ accessToken });
     });
 };
@@ -203,12 +203,10 @@ const deleteUser = async (req, res) => {
         const user = await User.findOne({ where: { id } });
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        console.log(user.profilePicture);
-
         // Delete any photo files associated with this user
-        if (user.profilePicture) {
+        if (user.profile_picture) {
             // Call a function to delete the file
-            deleteFile(user.profilePicture);
+            deleteFile(user.profile_picture);
         }
 
         await user.destroy();
@@ -230,25 +228,24 @@ const deleteUser = async (req, res) => {
 // Update user profile
 const updateUserProfile = async (req, res) => {
     // Get user ID from request
-    const { userId } = req.user;
+    const { id } = req.user;
 
-    if (!userId) return res.status(400).json({ message: "User ID is required" });
+    if (!id) return res.status(400).json({ message: "User ID is required" });
 
     try {
-
         // Check if user already exists
-        const user = await User.findOne({ where: { userId } });
+        const user = await User.findOne({ where: { id } });
         if (!user) return res.status(404).json({ message: "User not found" });
 
         // Check if the user uploaded an image
         if (req.file) {
-            // Check if the profilePicture field has a value and delete it
-            if (user.profilePicture) {
-                deleteFile(user.profilePicture);
+            // Check if the profile_picture field has a value and delete it
+            if (user.profile_picture) {
+                deleteFile(user.profile_picture);
             };
 
             // Update the profile picture field in the database
-            user.profilePicture = req.file.filename;
+            user.profile_picture = req.file.filename;
             await user.save();
         };
 
