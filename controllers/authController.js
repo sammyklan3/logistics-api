@@ -218,11 +218,44 @@ const fogortPassword = async (req, res) => {
         createTokenForUser(user.id, tokenData);
 
         // Send the reset link to the user's email
-        const resetLink = `http://localhost:3000/reset-password?t=${token}`; // Replace with true domain
+        const resetLink = `http://localhost:3000/reset-password?token=${token}`; // Replace with true domain
 
         sendMail(user.email, "Password Reset", `Hello ${user.name}, click the link below to reset your password`, `<p>Hello <b>${user.name}</b>,</p><p>Click the link below to reset your password, expires in 15 minutes</p><a href="${resetLink}">Reset Password</a>`);
 
         res.status(200).json({ message: "Password reset link sent to your email" });
+    } catch (error) {
+        errorHandler(error, req, res);
+    }
+};
+
+// Reset password
+const resetPassword = async (req, res) => {
+    const { token } = req.query;
+    const { password } = req.body;
+
+    if (!token || !password) return res.status(400).json({ message: "Token and password are required" });
+
+    try {
+
+        // Validate token and it's expiry time
+        jwt.verify(token, process.env.RESET_PASSWORD_SECRET, async (err, user) => {
+            if (err) return res.status(403).json({ message: "Invalid or expired token" });
+
+            // Hash the new password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Update the user's password
+            const userData = await User.findOne({ where: { id: user.id } });
+            if (!userData) return res.status(404).json({ message: "User not found" });
+
+            userData.password = hashedPassword;
+            await userData.save();
+
+            // Send email to user to notify them of the password reset
+            sendMail(userData.email, "Password Reset Successful", `Hello ${userData.name}, your password has been reset`, `<p>Hello <b>${userData.name}</b>,</p><p>Your password has been reset successfully</p>`);
+            res.status(200).json({ message: "Password reset successful" });
+        });
+        
     } catch (error) {
         errorHandler(error, req, res);
     }
@@ -292,4 +325,4 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
-module.exports = { register, login, refreshToken, deleteUser, updateUserProfile, fogortPassword };
+module.exports = { register, login, refreshToken, deleteUser, updateUserProfile, fogortPassword, resetPassword };
