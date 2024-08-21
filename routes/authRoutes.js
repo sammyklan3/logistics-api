@@ -8,6 +8,6 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/refresh-token", refreshToken);
 router.delete("/delete", authenticateToken ,deleteUser);
-router.patch("/update", authenticateToken, upload.single("image"), updateUserProfile);
+router.patch("/update", authenticateToken, upload.single("file"), updateUserProfile);
 
 module.exports = router;

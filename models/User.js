@@ -34,6 +34,11 @@ const User = sequelize.define("User", {
         allowNull: false
     },
 
+    profile_picture: {
+        type: DataTypes.STRING,
+        defaultValue: "default.jpg"
+    },
+
     created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW

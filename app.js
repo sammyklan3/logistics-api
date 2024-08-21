@@ -37,7 +37,7 @@ if (cluster.isMaster) {
     syncDatabase();
 
     app.get("/", (req, res) => {
-        res.send('Hello World!');
+        res.send("Welcome to the Job Portal API");
     });
 
     // Use morgan to log requests to the console

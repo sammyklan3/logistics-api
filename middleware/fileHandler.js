@@ -1,12 +1,44 @@
 const multer = require("multer");
 const path = require("path");
+const https = require("https");
+const axios = require("axios");
 const fs = require("fs");
 const uploadsDir = "uploads";
+
+// Define the URL of the image and the upload directory
+const imageUrl = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
 
 // Create the upload directory if it doesn't exist
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
+    console.log(`Directory ${uploadsDir} created!`);
 }
+
+// Download the default profile picture
+async function downloadImage(url, filepath) {
+    const writer = fs.createWriteStream(filepath);
+
+    const response = await axios({
+        url,
+        method: "GET",
+        responseType: "stream",
+    });
+
+    response.data.pipe(writer);
+
+    return new Promise((resolve, reject) => {
+        writer.on("finish", () => resolve());
+        writer.on("error", (error) => reject(error));
+    });
+}
+
+// Save the image in the uploads folder
+const defaultFileName = "default.jpg";
+const filePath = path.join(uploadsDir, defaultFileName);
+
+downloadImage(imageUrl, filePath)
+    .then(() => console.log('Image downloaded successfully'))
+    .catch((err) => console.error('Error downloading the image:', err));
 
 // Define storage for files
 const storage = multer.diskStorage({
