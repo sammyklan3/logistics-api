@@ -4,12 +4,14 @@ const Sequelize = require("sequelize");
 const sequelize = require("../config/database");
 const validateEmail = require("../utils/emailValidator");
 const User = require("../models/User");
+const errorHandler = require("../middleware/errorHandler");
 const createDriverProfile = require("../utils/createDriverProfile");
 const createShipperProfile = require("../utils/createShipperProfile");
 const createCompanyProfile = require("../utils/createCompanyProfile");
 const generateToken = require("../utils/generateToken");
 const sendMail = require("../services/mailService");
 const deleteFile = require("../utils/deleteFile");
+const createTokenForUser = require("../utils/createToken");
 
 // Create an enum for user roles
 const roles = {
@@ -101,7 +103,7 @@ const register = async (req, res) => {
         if (transaction && !transaction.finished) {
             await transaction.rollback();
         }
-        res.status(500).json({ error: err.message });
+        errorHandler(err, req, res);
     }
 };
 
@@ -154,10 +156,10 @@ const login = async (req, res) => {
         const userData = {
             id: user.id,
             userId: user.userId,
-            username: user.username,
+            name: user.name,
             email: user.email,
             role: user.role,
-            phoneNumber: user.phoneNumber
+            phoneNumber: user.phone_number
         };
 
         // Get location of login
@@ -165,7 +167,7 @@ const login = async (req, res) => {
         // const location = await getLocation(ip);
 
         // Send email to notify user of new login
-        sendMail(user.email, "New Login", `Hello ${user.username}, a new login was detected on your account`, `<p>Hello <b>${user.firstName} ${user.lastName}</b>,</p><p>A new login was detected on your account</p>`);
+        sendMail(user.email, "New Login", `Hello ${user.name}, a new login was detected on your account`, `<p>Hello <b>${user.name}</b>,</p><p>A new login was detected on your account</p>`);
 
         // Generate tokens
         const accessToken = generateToken(user, process.env.ACCESS_TOKEN_SECRET, "15m");
@@ -175,7 +177,7 @@ const login = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(400).json({ error: error.message });
+        errorHandler(error, req, res);
     }
 };
 
@@ -191,6 +193,39 @@ const refreshToken = async (req, res) => {
         const accessToken = generateToken(user, process.env.ACCESS_TOKEN_SECRET, "15m");
         res.json({ accessToken });
     });
+};
+
+// Request password reset
+const fogortPassword = async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    try {
+        // Check if the user exists
+        const user = await User.findOne({ where: { email } });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Generate a unique token
+        const token = jwt.sign({ id: user.id }, process.env.RESET_PASSWORD_SECRET, { expiresIn: "15m" });
+
+        const tokenData = {
+            token,
+            type: "reset",
+            expires_at: new Date(Date.now() + 15 * 60 * 1000)
+        }
+        
+        // Save the token in the database
+        createTokenForUser(user.id, tokenData);
+
+        // Send the reset link to the user's email
+        const resetLink = `http://localhost:3000/reset-password?t=${token}`; // Replace with true domain
+
+        sendMail(user.email, "Password Reset", `Hello ${user.name}, click the link below to reset your password`, `<p>Hello <b>${user.name}</b>,</p><p>Click the link below to reset your password, expires in 15 minutes</p><a href="${resetLink}">Reset Password</a>`);
+
+        res.status(200).json({ message: "Password reset link sent to your email" });
+    } catch (error) {
+        errorHandler(error, req, res);
+    }
 };
 
 // Delete a user
@@ -257,4 +292,4 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
-module.exports = { register, login, refreshToken, deleteUser, updateUserProfile };
+module.exports = { register, login, refreshToken, deleteUser, updateUserProfile, fogortPassword };
