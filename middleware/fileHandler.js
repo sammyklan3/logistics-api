@@ -36,9 +36,12 @@ async function downloadImage(url, filepath) {
 const defaultFileName = "default.jpg";
 const filePath = path.join(uploadsDir, defaultFileName);
 
-downloadImage(imageUrl, filePath)
-    .then(() => console.log('Image downloaded successfully'))
-    .catch((err) => console.error('Error downloading the image:', err));
+// Check if the default profile picture already exists
+if (!fs.existsSync(filePath)) {
+    downloadImage(imageUrl, filePath)
+       .then(() => console.log('Image downloaded successfully'))
+       .catch((err) => console.error('Error downloading the image:', err));
+}
 
 // Define storage for files
 const storage = multer.diskStorage({

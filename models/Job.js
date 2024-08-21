@@ -29,12 +29,12 @@ const Job = sequelize.define("Job", {
     },
 
     pickup_location: {
-        type: DataTypes.STRING,
+        type: DataTypes.JSON,
         allowNull: false
     },
 
     dropoff_location: {
-        type: DataTypes.STRING,
+        type: DataTypes.JSON,
         allowNull: false
     },
 
@@ -44,18 +44,28 @@ const Job = sequelize.define("Job", {
     },
 
     dimensions: {
-        type: DataTypes.STRING,
+        type: DataTypes.JSON,
         allowNull: false
     },
 
-    price: {
-        type: DataTypes.FLOAT,
+    salary: {
+        type: DataTypes.INTEGER,
         allowNull: false
     },
 
     status: {
         type: DataTypes.ENUM("open", "in_progress", "completed", "cancelled"),
         defaultValue: "open"
+    },
+
+    departure_date: {
+        type: DataTypes.DATE,
+        allowNull: false
+    },
+
+    expected_delivery_date: {
+        type: DataTypes.DATE,
+        allowNull: false
     },
 
     created_at: {
