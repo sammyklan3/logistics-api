@@ -8,6 +8,7 @@ const Payment = require("./Payment");
 const Rating = require("./Rating");
 const Token = require("./Token");
 const Image = require("./Image");
+const Loan = require("./Loan");
 
 // Sync all defined models to the database
 // TODO: remove this and use migrations

@@ -127,7 +127,7 @@ const createProfileBasedOnRole = async (role, userId, profileData) => {
 const sendWelcomeEmail = async (email, name, role) => {
     const subject = "Welcome to NovaCore";
     const message = `Hello ${name}, welcome to the platform`;
-    const htmlMessage = `<p>Hello <b>${name}</b>,</p><p>Welcome to our service!</p><br>${role === "shipper" ? "You've registered as a shipper" : "You've registered as a driver"}`;
+    const htmlMessage = `<p>Hello <b>${name}</b>,</p><p>Welcome to our service!</p><br>${role === roles.shipper ? "You've registered as a shipper" : "You've registered as a driver"}`;
 
     await sendMail(email, subject, message, htmlMessage);
 };
@@ -176,7 +176,6 @@ const login = async (req, res) => {
         res.json({ accessToken, refreshToken, userData });
 
     } catch (error) {
-        console.log(error);
         errorHandler(error, req, res);
     }
 };
@@ -288,8 +287,8 @@ const deleteUser = async (req, res) => {
             `<p>Hello <b>${user.firstName} ${user.lastName}</b>,</p><p>Your account has been deleted</p>`
         );
 
-    } catch {
-        res.status(400).json({ error: error.message });
+    } catch (err){
+        errorHandler(err, req, res);
     }
 };
 
@@ -321,7 +320,7 @@ const updateUserProfile = async (req, res) => {
 
         res.status(200).json({ message: "User profile updated successfully", user });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        errorHandler(error, req, res);
     }
 };
 

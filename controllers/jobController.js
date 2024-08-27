@@ -1,8 +1,9 @@
 const Job = require("../models/Job");
 const User = require("../models/User");
 const ShipperProfile = require("../models/ShipperProfile");
+const Loan = require("../models/Loan");
 const sequelize = require("../config/database");
-const Sequelize = require("sequelize");
+const errorHandler = require("../middleware/errorHandler");
 require("dotenv").config();
 
 const categoryEnum = [
@@ -93,8 +94,7 @@ const createJob = async (req, res) => {
         return res.status(201).json({ message: "Job created successfully", job });
     } catch (error) {
         await transaction.rollback();
-        console.log(error);
-        return res.status(500).json({ error: error.message });
+        errorHandler(error, res)
     }
 };
 
