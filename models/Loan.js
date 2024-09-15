@@ -46,9 +46,9 @@ const Loan = sequelize.define("Loan", {
     },
 
     status: {
-        type: DataTypes.ENUM("pending", "approved", "rejected"),
+        type: DataTypes.ENUM("pending", "approved", "rejected", "disbursed", "repaid", "defaulted"),
         defaultValue: "pending"
-    },
+    },    
 
     created_at: {
         type: DataTypes.DATE,
