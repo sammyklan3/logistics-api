@@ -38,6 +38,11 @@ const createJob = async (req, res) => {
     // Get the shipper's ID from the request context
     const userId = req.user.id;
 
+    // Check the user's role
+    if (req.user.role !== "shipper") {
+        return res.status(403).json({ message: "You're not authorized to perform this action" });
+    }
+
     // Start a transaction
     const transaction = await sequelize.transaction();
 
@@ -48,24 +53,33 @@ const createJob = async (req, res) => {
     }
 
     // Using the userId, get the shipper's ID from the shipper's table
-    const shipper = await ShipperProfile.findOne({ where: { user_id: userId }, transaction });
-    const shipper_id = shipper.id;
+    const shipperProfile = await ShipperProfile.findOne({ where: { user_id: userId }, transaction });
+    console.log(shipperProfile);
+    const shipper_id = shipperProfile.id;
+
     if (!shipper_id) {
         return res.status(404).json({ message: "Shipper not found" });
     }
 
     // Check if the shipper has enough tokens to create a job
-    if (shipper.tokens < process.env.SHIPPER_JOB_CREATION_COST) {
+    const jobCreationCost = parseInt(process.env.SHIPPER_JOB_CREATION_COST, 10);
+    if (isNaN(jobCreationCost)) {
+        return res.status(500).json({ message: "Job creation cost is not configured properly" });
+    }
+
+    // Get amount of tokens from the User's profile
+    const user = await User.findByPk(userId, { transaction });
+    if (user.tokens < jobCreationCost) {
+
+        // Check if the shipper has an active loan
+        const activeLoan = await Loan.findOne({ where: { user_id: user.id, status: "disbursed" }, transaction });
         return res.status(403).json({ message: "Insufficient tokens to create a job" });
     }
+
 
     // Check if the category is valid
     if (!categoryEnum.includes(category)) {
         return res.status(400).json({ message: "Invalid category" });
-    }
-
-    if (req.user.role !== "shipper") {
-        return res.status(403).json({ message: "Only shippers can create jobs" });
     }
 
     try {
@@ -85,9 +99,8 @@ const createJob = async (req, res) => {
         }, { transaction });
 
         // Subtract the number of tokens from the shipper's account
-        const shipper = await User.findOne({ where: { id: userId }, transaction });
-        shipper.tokens -= process.env.SHIPPER_JOB_CREATION_COST;
-        await shipper.save({ transaction });
+        user.tokens -= process.env.SHIPPER_JOB_CREATION_COST;
+        await user.save({ transaction });
 
         await transaction.commit();
 

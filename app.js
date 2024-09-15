@@ -2,6 +2,7 @@ const express = require("express");
 const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const userRoutes = require("./routes/userRoutes");
+const limiter = require("./middleware/rate-limiter");
 const app = express();
 const morgan = require("morgan");
 const cluster = require("cluster");
@@ -34,6 +35,9 @@ if (cluster.isMaster) {
     // Enable CORS
     app.use(cors());
 
+    // Apply rate limiter to all requests
+    app.use(limiter);
+
     // Sync the database
     syncDatabase();
 
@@ -47,7 +51,6 @@ if (cluster.isMaster) {
     app.use("/auth", authRoutes);
     app.use("/job", jobRoutes);
     app.use("/profile", userRoutes);
-    app
 
     app.listen(port, () => {
         console.log(`Server running on port ${port}`);
