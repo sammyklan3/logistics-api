@@ -73,7 +73,12 @@ const createJob = async (req, res) => {
 
         // Check if the shipper has an active loan
         const activeLoan = await Loan.findOne({ where: { user_id: user.id, status: "disbursed" }, transaction });
-        return res.status(403).json({ message: "Insufficient tokens to create a job" });
+
+        if (!activeLoan) {
+            return res.status(400).json({ message: "Insufficient tokens. Please request a loan" });
+        } else {
+            return res.status(400).json({ message: "Insufficient tokens. You have an active loan" });
+        }
     }
 
 
