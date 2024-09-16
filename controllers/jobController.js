@@ -181,8 +181,16 @@ const updateJob = async (req, res) => {
     return res.status(404).json({ message: "Job not found" });
   }
 
+  //  Use the middleware's user.id to find shipper's id
+  const userId = req.user.id;
+  const shipperProfile = await ShipperProfile.findOne({
+    where: { user_id: userId },
+    transaction,
+  });
+  const shipper_id = shipperProfile.id;
+
   // Check if the user is authorized to update the job
-  if (job.shipper_id !== req.user.id) {
+  if (job.shipper_id !== shipper_id) {
     return res
       .status(403)
       .json({ message: "You're not authorized to update this job" });
@@ -205,8 +213,6 @@ const updateJob = async (req, res) => {
       { transaction }
     );
 
-    await transaction.commit();
-
     // Notify drivers subscribed to the job that it has been updated
     const jobAssignments = await JobAssignment.findAll({
       where: { job_id: jobId },
@@ -226,6 +232,8 @@ const updateJob = async (req, res) => {
       console.log(`Driver ${driver.id} has been notified about the job update`);
     });
 
+    await transaction.commit();
+
     return res
       .status(200)
       .json({ message: `Job ${job.id} has been successfully updated`, job });
@@ -235,4 +243,50 @@ const updateJob = async (req, res) => {
   }
 };
 
-module.exports = { createJob, updateJob };
+// Job deletion
+const deleteJob = async (req, res) => {
+  const jobId = req.params.id;
+
+  // Start a transaction
+  const transaction = await sequelize.transaction();
+
+  // Check if the job exists
+  const job = await Job.findByPk(jobId, { transaction });
+  if (!job) {
+    return res.status(404).json({ message: "Job not found" });
+  }
+
+  // Use the middleware's user.id to find shipper's id
+  const userId = req.user.id;
+  const shipperProfile = await ShipperProfile.findOne({
+    where: { user_id: userId },
+    transaction,
+  });
+  const shipper_id = shipperProfile.id;
+
+  // Check if the user is authorized to delete the job
+  if (job.shipper_id !== shipper_id) {
+    return res
+      .status(403)
+      .json({ message: "You're not authorized to delete this job" });
+  }
+
+  // Check if the job is already in progress (assigned to a driver)
+  if (job.status === "in_progress") {
+    return res
+      .status(400)
+      .json({ message: "Cannot delete a job that is already in progress" });
+  }
+
+  try {
+    // Delete the job
+    await job.destroy({ transaction });
+    await transaction.commit();
+    return res.status(200).json({ message: `Job ${jobId} has been deleted` });
+  } catch (err) {
+    await transaction.rollback();
+    errorHandler(err, res);
+  }
+};
+
+module.exports = { createJob, updateJob, deleteJob };
