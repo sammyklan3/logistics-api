@@ -3,67 +3,71 @@ const sequelize = require("../config/database");
 const User = require("./User");
 const Job = require("./Job");
 
-const Rating = sequelize.define("Rating", {
+const Rating = sequelize.define(
+  "Rating",
+  {
     id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
 
     reviewer_id: {
-        type: DataTypes.UUID,
-        references: {
-            model: User,
-            key: "id"
-        },
-        allowNull: false,
+      type: DataTypes.UUID,
+      references: {
+        model: User,
+        key: "id",
+      },
+      allowNull: false,
     },
 
     reviewee_id: {
-        type: DataTypes.UUID,
-        references: {
-            model: User,
-            key: "id"
-        },
-        allowNull: false,
+      type: DataTypes.UUID,
+      references: {
+        model: User,
+        key: "id",
+      },
+      allowNull: false,
     },
 
     job_id: {
-        type: DataTypes.UUID,
-        references: {
-            model: Job,
-            key: "id"
-        },
-        allowNull: false,
+      type: DataTypes.UUID,
+      references: {
+        model: Job,
+        key: "id",
+      },
+      allowNull: false,
     },
 
     rating: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        validate: {
-            min: 1,
-            max: 5
-        }
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 1,
+        max: 5,
+      },
     },
 
     review: {
-        type: DataTypes.TEXT,
-        allowNull: false
+      type: DataTypes.TEXT,
+      allowNull: false,
     },
 
     created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
 
     updated_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW
-    }
-}, {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+  },
+  {
     timestamps: false,
-    tableName: "ratings"
-});
+    tableName: "ratings",
+  }
+);
 
 User.hasMany(Rating, { foreignKey: "reviewer_id", as: "reviewer" });
 Rating.belongsTo(User, { foreignKey: "reviewer_id", as: "reviewer" });

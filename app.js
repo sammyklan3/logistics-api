@@ -14,45 +14,45 @@ const port = 3000;
 
 // Use node.js cluster configuration to take advantage of multi-core systems
 if (cluster.isMaster) {
-    const numCPUs = os.cpus().length;
+  const numCPUs = os.cpus().length;
 
-    // Fork workers
-    for (let i = 0; i < numCPUs; i++) {
-        cluster.fork();
-    }
+  // Fork workers
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
 
-    cluster.on("exit", (worker, code, signal) => {
-        console.log(`Worker ${worker.process.pid} died, restarting...`);
-        cluster.fork();
-    });
+  cluster.on("exit", (worker, code, signal) => {
+    console.log(`Worker ${worker.process.pid} died, restarting...`);
+    cluster.fork();
+  });
 } else {
-    // Workers can share any TCP connection
-    app.use(express.json());
+  // Workers can share any TCP connection
+  app.use(express.json());
 
-    // Compress responses
-    app.use(compression());
+  // Compress responses
+  app.use(compression());
 
-    // Enable CORS
-    app.use(cors());
+  // Enable CORS
+  app.use(cors());
 
-    // Apply rate limiter to all requests
-    app.use(limiter);
+  // Apply rate limiter to all requests
+  app.use(limiter);
 
-    // Sync the database
-    syncDatabase();
+  // Sync the database
+  syncDatabase();
 
-    app.get("/", (req, res) => {
-        res.send("Welcome to the Job Portal API");
-    });
+  app.get("/", (req, res) => {
+    res.send("Welcome to the Job Portal API");
+  });
 
-    // Use morgan to log requests to the console
-    app.use(morgan("combined"));
+  // Use morgan to log requests to the console
+  app.use(morgan("combined"));
 
-    app.use("/auth", authRoutes);
-    app.use("/job", jobRoutes);
-    app.use("/profile", userRoutes);
+  app.use("/auth", authRoutes);
+  app.use("/job", jobRoutes);
+  app.use("/profile", userRoutes);
 
-    app.listen(port, () => {
-        console.log(`Server running on port ${port}`);
-    });
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 }
