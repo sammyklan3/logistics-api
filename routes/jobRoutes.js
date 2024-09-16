@@ -4,6 +4,6 @@ const { createJob, updateJob } = require("../controllers/jobController");
 const router = express.Router();
 
 router.post("/create", authenticateToken, createJob);
-router.patch("/update/:jobId", authenticateToken, updateJob);
+router.patch("/update/:id", authenticateToken, updateJob);
 
 module.exports = router;
