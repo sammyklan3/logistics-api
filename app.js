@@ -2,6 +2,7 @@ const express = require("express");
 const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const userRoutes = require("./routes/userRoutes");
+const bidRoutes = require("./routes/bidRoutes");
 const limiter = require("./middleware/rate-limiter");
 const app = express();
 const morgan = require("morgan");
@@ -51,6 +52,7 @@ if (cluster.isMaster) {
   app.use("/auth", authRoutes);
   app.use("/job", jobRoutes);
   app.use("/profile", userRoutes);
+  app.use("/bid", bidRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);

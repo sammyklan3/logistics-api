@@ -1,6 +1,10 @@
 const express = require("express");
 const authenticateToken = require("../middleware/authMiddleware");
-const { createJob, updateJob, deleteJob } = require("../controllers/jobController");
+const {
+  createJob,
+  updateJob,
+  deleteJob,
+} = require("../controllers/jobController");
 const router = express.Router();
 
 router.post("/create", authenticateToken, createJob);
