@@ -53,8 +53,16 @@ const createBid = async (req, res) => {
       });
     }
 
+    // Parse the bid fee into integer
+    const bidFee = parseInt(process.env.BID_FEE, 10);
+    if (isNaN(bidFee)) {
+      return res
+        .status(500)
+        .json({ message: "Job creation cost is not configured properly" });
+    }
+
     // Check if the driver has enough tokens to place a bid
-    if (driverProfile.tokens < process.env.BID_FEE) {
+    if (driverProfile.tokens < bidFee) {
       return res.status(400).json({
         message: "You do not have enough tokens to place a bid",
       });
@@ -71,7 +79,7 @@ const createBid = async (req, res) => {
     );
 
     // Subtract token fee required to place a bid
-    driverProfile.tokens -= process.env.BID_FEE;
+    driverProfile.tokens -= bidFee;
     await driverProfile.save({ transaction });
 
     // Notify the shipper that a bid has been placed
@@ -102,50 +110,58 @@ const createBid = async (req, res) => {
 
 // Delete a bid
 const deleteBid = async (req, res) => {
-    const { id } = req.params;
-    
-    // Start a transaction
-    const transaction = await sequelize.transaction();
-    
-    try {
-        // Check if the bid exists
-        const bid = await Bid.findByPk(id, { transaction });
-        if (!bid) {
-        return res.status(404).json({ message: "Bid not found" });
-        }
-    
-        // Check if the user is authorized to delete the bid
-        if (req.user.id !== bid.bidder_id) {
-        return res
-            .status(403)
-            .json({ message: "You are not authorized to delete this bid" });
-        }
-    
-        // Check if the job has already been assigned
-        const job = await Job.findByPk(bid.job_id, { transaction });
-        if (job.assigned_to) {
-        return res
-            .status(400)
-            .json({ message: "This job has already been assigned" });
-        }
-    
-        // Delete the bid
-        await bid.destroy({ transaction });
-    
-        // Refund the bid fee to the driver
-        const driverProfile = await User.findByPk(bid.bidder_id, {
-        transaction,
-        });
-        driverProfile.tokens += process.env.BID_FEE;
-        await driverProfile.save({ transaction });
-    
-        await transaction.commit();
-    
-        return res.status(200).json({ message: "Bid has been deleted" });
-    } catch (error) {
-        await transaction.rollback();
-        errorHandler(error, res);
+  const { id } = req.params;
+
+  // Start a transaction
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Check if the bid exists
+    const bid = await Bid.findByPk(id, { transaction });
+    if (!bid) {
+      return res.status(404).json({ message: "Bid not found" });
     }
+
+    // Check if the user is authorized to delete the bid
+    if (req.user.id !== bid.bidder_id) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to delete this bid" });
+    }
+
+    // Check if the job has already been assigned
+    const job = await Job.findByPk(bid.job_id, { transaction });
+    if (job.assigned_to) {
+      return res
+        .status(400)
+        .json({ message: "This job has already been assigned" });
+    }
+
+    // Parse the bid fee into integer
+    const bidFee = parseInt(process.env.BID_FEE, 10);
+    if (isNaN(bidFee)) {
+      return res
+        .status(500)
+        .json({ message: "Job creation cost is not configured properly" });
+    }
+
+    // Delete the bid
+    await bid.destroy({ transaction });
+
+    // Refund the bid fee to the driver
+    const driverProfile = await User.findByPk(bid.bidder_id, {
+      transaction,
+    });
+    driverProfile.tokens += bidFee;
+    await driverProfile.save({ transaction });
+
+    await transaction.commit();
+
+    return res.status(200).json({ message: "Bid has been deleted" });
+  } catch (error) {
+    await transaction.rollback();
+    errorHandler(error, res);
+  }
 };
 
 module.exports = { createBid, deleteBid };
