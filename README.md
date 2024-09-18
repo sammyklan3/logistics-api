@@ -1,12 +1,10 @@
 # Logistics API
 
-The Logistics API is a powerful tool for managing and tracking logistics operations. It provides a set of endpoints that allow users to create, update, and retrieve information related to shipments, warehouses, and transportation.
+Node.js-based backend that facilitates interactions between shippers, drivers, and companies. It offers endpoints for user authentication, job postings, bidding, and real-time communication through WebSockets. Shippers can create and modify shipment jobs, while drivers can view available jobs, bid using a token-based system, and take loans to cover insufficient tokens. The API handles role-based access, data validation, and transactional consistency to ensure smooth marketplace operations and secure interactions between all users.
 
 ## Features
 
 - **Shipment Management**: Create, update, and retrieve information about shipments. Track the status of each shipment and get real-time updates.
-
-- **Warehouse Management**: Manage warehouses and their inventory. Keep track of stock levels, receive and dispatch goods, and generate reports.
 
 - **Transportation Management**: Plan and schedule transportation routes. Optimize routes based on distance, time, and other factors. Monitor the progress of each transportation task.
 
