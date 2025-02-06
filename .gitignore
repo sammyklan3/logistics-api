@@ -240,7 +240,9 @@ $RECYCLE.BIN/
 
 uploads/
 
-# Dockerfile, this backend is not on a virtual machine
-dockerfile
+Dockerfile*
+*.docker
+docker-compose.yml
+
 
 # End of https://www.toptal.com/developers/gitignore/api/node,visualstudiocode,macos,windows,linux,serverless
