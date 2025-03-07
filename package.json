@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js",
-    "format": "npx prettier --write *",
+    "format": "npx prettier --write ./",
     "lint": "eslint."
   },
   "husky": {
