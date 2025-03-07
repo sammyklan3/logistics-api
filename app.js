@@ -1,10 +1,14 @@
 const express = require("express");
+const http = require("http");
 const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const userRoutes = require("./routes/userRoutes");
 const bidRoutes = require("./routes/bidRoutes");
 const limiter = require("./middleware/rate-limiter");
+
 const app = express();
+const server = http.createServer(app);
+
 const morgan = require("morgan");
 const cluster = require("cluster");
 const cors = require("cors");
@@ -54,7 +58,27 @@ if (cluster.isMaster) {
   app.use("/profile", userRoutes);
   app.use("/bid", bidRoutes);
 
-  app.listen(port, () => {
+  server.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
+
+  // Graceful shutdown handler
+  const shutdown = () => {
+    console.log("Shutting down gracefully...");
+
+    server.close(() => {
+      console.log("HTTP server closed.");
+      process.exit(0);
+    });
+
+    // Force exit if not closed in 5 seconds
+    setTimeout(() => {
+      console.error("Forcing shutdown...");
+      process.exit(1);
+    }, 5000);
+  };
+
+  // Listen for termination signals
+  process.on("SIGINT", shutdown); // Ctrl+C
+  process.on("SIGTERM", shutdown); // Kill signal
 }
