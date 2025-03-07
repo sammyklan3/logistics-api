@@ -84,7 +84,7 @@ const createJob = async (req, res) => {
     transaction,
   });
   console.log(shipperProfile);
-  const shipper_id = shipperProfile.id;
+  const shipper_id = shipperProfile.user_id;
 
   if (!shipper_id) {
     return res.status(404).json({ message: "Shipper not found" });
